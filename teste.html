@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Solver Linear</title>
+    <style>
+        :root {
+            --bg-main: #f4f6f9;
+            --bg-card: #ffffff;
+            --bg-sidebar: #263238;
+            --bg-sidebar-dark: #1e262f;
+            --accent: #26c6da;
+            --accent-soft: rgba(38, 198, 218, 0.12);
+            --danger: #e53935;
+            --success: #22c55e;
+            --warning: #ff9800;
+            --text-main: #333;
+            --text-muted: #7a869a;
+            --border-soft: #e0e6ee;
+            --radius-lg: 12px;
+            --shadow-soft: 0 6px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            min-height: 100%;
+            font-family: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-main);
+            background: var(--bg-main);
+        }
+
+        body {
+            display: flex;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: var(--bg-sidebar);
+            color: #eceff1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 18px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.25);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 32px;
+        }
+
+        .logo-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            background: var(--accent);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(38, 198, 218, 0.35);
+        }
+
+        .logo-text {
+            font-weight: 500;
+            font-size: 15px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: auto;
+        }
+
+        .menu-item {
+            padding: 10px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #cfd8dc;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            transition: background 0.2s, color 0.2s, transform 0.1s;
+        }
+
+        .menu-item:hover {
+            background: var(--bg-sidebar-dark);
+            color: #ffffff;
+            transform: translateX(2px);
+        }
+
+        .menu-item.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .sidebar-footer {
+            font-size: 11px;
+            color: #90a4ae;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 10px;
+        }
+
+        .main {
+            padding: 24px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .main-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .main-header h1 {
+            font-size: 22px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            outline: none;
+            border-radius: 999px;
+            padding: 9px 18px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+        }
+
+        .btn.primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(38, 198, 218, 0.35);
+        }
+
+        .btn.primary:hover {
+            box-shadow: 0 6px 18px rgba(38, 198, 218, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn.ghost {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid rgba(38, 198, 218, 0.6);
+        }
+
+        .btn.ghost:hover {
+            background: var(--accent-soft);
+        }
+
+        .btn.full {
+            width: 100%;
+        }
+
+        .input,
+        .file-input-label {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border-soft);
+            background: #fff;
+            font-size: 13px;
+            color: var(--text-main);
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px rgba(38, 198, 218, 0.3);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+            padding: 14px 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card-header h2 {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .card-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 16px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .summary-item {
+            background: #f7f9fc;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .summary-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        .summary-value {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .summary-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 4px;
+        }
+
+        .search-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .search-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .search-field label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .search-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .file-input-label:hover {
+            border-color: var(--accent);
+            background: #fbfeff;
+        }
+
+        .file-name {
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .badge-soft {
+            background: #f5f7fb;
+            color: var(--text-muted);
+        }
+
+        .badge-accent {
+            background: rgba(38, 198, 218, 0.12);
+            color: var(--accent);
+        }
+
+        .matriz-stage {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .matriz-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .matriz-grid {
+            display: grid;
+            gap: 10px;
+            width: max-content;
+            min-width: 100%;
+        }
+
+        .matrix-cell {
+            width: 68px;
+            height: 42px;
+            text-align: center;
+            border-radius: 10px;
+            border: 1px solid var(--border-soft);
+            background: #fff;
+            font-size: 13px;
+            color: var(--text-main);
+            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+        }
+
+        .matrix-cell:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px rgba(38, 198, 218, 0.25);
+        }
+
+        .matrix-cell.col-b {
+            background: rgba(38, 198, 218, 0.08);
+            border-color: rgba(38, 198, 218, 0.32);
+            font-weight: 500;
+        }
+
+        .matriz-hint {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .matriz-hint .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--accent);
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 4px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .table thead {
+            background: #f1f4f9;
+        }
+
+        .table thead th {
+            text-align: left;
+            padding: 8px 10px;
+            font-weight: 500;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-soft);
+            white-space: nowrap;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background: #fafbfe;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(38, 198, 218, 0.06);
+        }
+
+        .table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-soft);
+            vertical-align: middle;
+        }
+
+        .muted {
+            color: var(--text-muted);
+        }
+
+        .empty-state {
+            min-height: 120px;
+            border: 1px dashed var(--border-soft);
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f7fbff 0%, #eef3f8 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 18px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .toast-root {
+            position: fixed;
+            right: 18px;
+            top: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .toast {
+            min-width: 260px;
+            max-width: 340px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: var(--shadow-soft);
+            border-left: 4px solid var(--accent);
+            padding: 10px 12px 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            pointer-events: auto;
+            opacity: 0;
+            transform: translateX(8px) translateY(6px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toast--visible {
+            opacity: 1;
+            transform: translateX(0) translateY(0);
+        }
+
+        .toast-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+        }
+
+        .toast-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .toast-text {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .toast-close {
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 0 0 0 4px;
+            flex-shrink: 0;
+        }
+
+        .toast--success {
+            border-left-color: #4caf50;
+        }
+
+        .toast--error {
+            border-left-color: var(--danger);
+        }
+
+        .section-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 1024px) {
+            .app {
+                grid-template-columns: 220px 1fr;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-3 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: fixed;
+                inset: 0 auto 0 0;
+                width: 210px;
+                z-index: 10;
+            }
+
+            .main {
+                margin-left: 210px;
+                padding: 18px 16px;
+            }
+
+            .main-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .grid-3,
+            .search-row {
+                grid-template-columns: 1fr;
+            }
+
+            .header-actions,
+            .search-actions {
+                width: 100%;
+                justify-content: stretch;
+                flex-wrap: wrap;
+            }
+
+            .header-actions .btn,
+            .search-actions .btn {
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .app {
+                display: block;
+            }
+
+            .matrix-cell {
+                width: 58px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-mark">SL</div>
+                <div class="logo-text">Solver Linear</div>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active">Sistema Linear</a>
+                <a href="#" class="menu-item">Entrada da Matriz</a>
+                <a href="#" class="menu-item">Pré-visualização</a>
+                <a href="#" class="menu-item">Resultado</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                Interface fixa para informar a ordem da matriz e anexar arquivo.
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="main-header">
+                <div>
+                    <h1>Resolver Sistema Linear</h1>
+                    <div class="subtitle">Informe a ordem da matriz e preencha a matriz ampliada [A|b].</div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn ghost" type="button" id="btnLimparTudo">Limpar</button>
+                    <button class="btn primary" type="button" id="btnGerarTopo">Gerar matriz</button>
+                </div>
+            </header>
+
+            <section class="grid-3">
+                <div class="summary-item">
+                    <div class="summary-label">Ordem atual</div>
+                    <div class="summary-value" id="summaryOrdem">3 x 3</div>
+                    <div class="summary-sub">Quantidade de incógnitas do sistema.</div>
+                </div>
+
+                <div class="summary-item">
+                    <div class="summary-label">Colunas exibidas</div>
+                    <div class="summary-value" id="summaryColunas">4</div>
+                    <div class="summary-sub">Inclui a coluna do resultado b.</div>
+                </div>
+
+                <div class="summary-item">
+                    <div class="summary-label">Arquivo anexado</div>
+                    <div class="summary-value" id="summaryArquivo">Nenhum</div>
+                    <div class="summary-sub">Aceita arquivo .txt para colar os valores.</div>
+                </div>
+            </section>
+
+            <section class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Configuração da entrada</h2>
+                        <div class="card-subtitle">Escolha a ordem da matriz ou envie um arquivo com os números.</div>
+                    </div>
+
+                    <div class="search-form">
+                        <div class="search-row">
+                            <div class="search-field">
+                                <label for="ordem">Ordem da matriz (n x n)</label>
+                                <input class="input" type="number" id="ordem" min="2" max="10" value="3" />
+                            </div>
+
+                            <div class="search-field">
+                                <label for="arquivoMatriz">Anexar arquivo (.txt)</label>
+                                <div class="file-input-wrapper">
+                                    <input class="file-input" type="file" id="arquivoMatriz" accept=".txt,text/plain" />
+                                    <label class="file-input-label" for="arquivoMatriz">
+                                        <span>Selecionar arquivo</span>
+                                        <span class="file-name" id="fileName">Nenhum arquivo selecionado</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="search-row">
+                            <div class="search-field">
+                                <label for="textoMatriz">Colar matriz manualmente</label>
+                                <textarea
+                                    id="textoMatriz"
+                                    class="input"
+                                    rows="7"
+                                    style="border-radius: 12px; resize: vertical; line-height: 1.45;"
+                                    placeholder="Exemplo:
+2 1 -1 8
+-3 -1 2 -11
+-2 1 2 -3"
+                                ></textarea>
+                            </div>
+
+                            <div class="search-field">
+                                <label>Formato esperado</label>
+                                <div class="empty-state" style="min-height: 100%; align-items: flex-start; justify-content: flex-start; text-align: left;">
+                                    <div>
+                                        <strong style="display:block; margin-bottom:8px; color: var(--text-main);">Você pode informar de 3 formas:</strong>
+                                        <div style="margin-bottom: 8px;">1. Escolher a ordem e preencher os campos.</div>
+                                        <div style="margin-bottom: 8px;">2. Colar a matriz no campo ao lado.</div>
+                                        <div>3. Anexar um arquivo <strong>.txt</strong> com uma linha por equação.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="search-actions">
+                            <button class="btn ghost" type="button" id="btnPreencherExemplo">Carregar exemplo</button>
+                            <button class="btn primary" type="button" id="btnGerar">Gerar matriz</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Pré-visualização</h2>
+                        <div class="card-subtitle">Resumo da entrada antes de enviar ao back-end.</div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Ordem definida</td>
+                                    <td id="previewOrdem">3 x 3</td>
+                                </tr>
+                                <tr>
+                                    <td>Total de campos</td>
+                                    <td id="previewCampos">12</td>
+                                </tr>
+                                <tr>
+                                    <td>Arquivo</td>
+                                    <td id="previewArquivo">Nenhum arquivo anexado</td>
+                                </tr>
+                                <tr>
+                                    <td>Entrada manual</td>
+                                    <td id="previewManual">Vazia</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="matriz-hint">
+                        <span class="dot"></span>
+                        <span>A última coluna representa o vetor de resultado <strong>b</strong>.</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="section-title-row">
+                    <div class="card-header">
+                        <h2>Matriz ampliada [A|b]</h2>
+                        <div class="card-subtitle">Os campos são gerados conforme a ordem escolhida.</div>
+                    </div>
+
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <span class="badge badge-soft">Campos editáveis</span>
+                        <span class="badge badge-accent">Coluna b destacada</span>
+                    </div>
+                </div>
+
+                <div class="matriz-stage">
+                    <div class="matriz-wrapper">
+                        <div id="matrizGrid" class="matriz-grid"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-header">
+                    <h2>Ações</h2>
+                    <div class="card-subtitle">Essa tela é só a interface. Depois você pode ligar no Django.</div>
+                </div>
+
+                <div class="search-actions" style="justify-content: flex-start;">
+                    <button class="btn primary" type="button" id="btnResolver">Resolver sistema</button>
+                    <button class="btn ghost" type="button" id="btnExportarTexto">Gerar texto da matriz</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="toast-root" id="toastRoot"></div>
+
+    <script>
+        const ordemInput = document.getElementById('ordem');
+        const matrizGrid = document.getElementById('matrizGrid');
+        const textoMatriz = document.getElementById('textoMatriz');
+        const arquivoMatriz = document.getElementById('arquivoMatriz');
+        const fileName = document.getElementById('fileName');
+
+        const summaryOrdem = document.getElementById('summaryOrdem');
+        const summaryColunas = document.getElementById('summaryColunas');
+        const summaryArquivo = document.getElementById('summaryArquivo');
+
+        const previewOrdem = document.getElementById('previewOrdem');
+        const previewCampos = document.getElementById('previewCampos');
+        const previewArquivo = document.getElementById('previewArquivo');
+        const previewManual = document.getElementById('previewManual');
+
+        const btnGerar = document.getElementById('btnGerar');
+        const btnGerarTopo = document.getElementById('btnGerarTopo');
+        const btnPreencherExemplo = document.getElementById('btnPreencherExemplo');
+        const btnLimparTudo = document.getElementById('btnLimparTudo');
+        const btnResolver = document.getElementById('btnResolver');
+        const btnExportarTexto = document.getElementById('btnExportarTexto');
+
+        function showToast(title, text, type = 'success') {
+            const root = document.getElementById('toastRoot');
+            const toast = document.createElement('div');
+            toast.className = 'toast toast--' + type;
+
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-text">${text}</div>
+                </div>
+                <button class="toast-close" type="button" aria-label="Fechar">×</button>
+            `;
+
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', () => {
+                toast.remove();
+            });
+
+            root.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.add('toast--visible');
+            });
+
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 3200);
+        }
+
+        function normalizarOrdem(valor) {
+            const numero = parseInt(valor, 10);
+            if (Number.isNaN(numero)) return 3;
+            if (numero < 2) return 2;
+            if (numero > 10) return 10;
+            return numero;
+        }
+
+        function atualizarResumo(ordem) {
+            summaryOrdem.textContent = `${ordem} x ${ordem}`;
+            summaryColunas.textContent = `${ordem + 1}`;
+            previewOrdem.textContent = `${ordem} x ${ordem}`;
+            previewCampos.textContent = `${ordem * (ordem + 1)}`;
+            previewManual.textContent = textoMatriz.value.trim() ? 'Preenchida' : 'Vazia';
+        }
+
+        function gerarMatriz() {
+            const ordem = normalizarOrdem(ordemInput.value);
+            ordemInput.value = ordem;
+            matrizGrid.innerHTML = '';
+            matrizGrid.style.gridTemplateColumns = `repeat(${ordem + 1}, 68px)`;
+
+            for (let i = 0; i < ordem; i++) {
+                for (let j = 0; j < ordem + 1; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.step = 'any';
+                    input.placeholder = '0';
+                    input.className = 'matrix-cell';
+                    input.dataset.row = i;
+                    input.dataset.col = j;
+
+                    if (j === ordem) {
+                        input.classList.add('col-b');
+                    }
+
+                    matrizGrid.appendChild(input);
+                }
+            }
+
+            atualizarResumo(ordem);
+        }
+
+        function preencherMatrizPorTexto(texto) {
+            const linhas = texto
+                .trim()
+                .split(/\n+/)
+                .map(linha => linha.trim())
+                .filter(Boolean);
+
+            if (!linhas.length) {
+                showToast('Entrada vazia', 'Não foi encontrado conteúdo para preencher.', 'error');
+                return;
+            }
+
+            const matriz = linhas.map(linha =>
+                linha
+                    .replace(/;/g, ' ')
+                    .split(/\s+/)
+                    .filter(Boolean)
+            );
+
+            const tamanho = matriz.length;
+            const colunasEsperadas = tamanho + 1;
+            const formatoValido = matriz.every(linha => linha.length === colunasEsperadas);
+
+            if (!formatoValido) {
+                showToast(
+                    'Formato inválido',
+                    'O texto deve ter n linhas e n+1 colunas em cada linha.',
+                    'error'
+                );
+                return;
+            }
+
+            ordemInput.value = tamanho;
+            gerarMatriz();
+
+            const inputs = matrizGrid.querySelectorAll('.matrix-cell');
+
+            matriz.forEach((linha, i) => {
+                linha.forEach((valor, j) => {
+                    const index = i * (tamanho + 1) + j;
+                    if (inputs[index]) {
+                        inputs[index].value = valor;
+                    }
+                });
+            });
+
+            atualizarResumo(tamanho);
+            showToast('Matriz carregada', 'Os campos foram preenchidos com sucesso.', 'success');
+        }
+
+        function carregarArquivo(file) {
+            if (!file) return;
+
+            fileName.textContent = file.name;
+            summaryArquivo.textContent = file.name;
+            previewArquivo.textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const conteudo = String(event.target.result || '');
+                textoMatriz.value = conteudo.trim();
+                previewManual.textContent = textoMatriz.value.trim() ? 'Preenchida' : 'Vazia';
+                preencherMatrizPorTexto(conteudo);
+            };
+            reader.onerror = function() {
+                showToast('Erro ao ler arquivo', 'Não foi possível ler o arquivo enviado.', 'error');
+            };
+            reader.readAsText(file);
+        }
+
+        function limparTudo() {
+            ordemInput.value = 3;
+            textoMatriz.value = '';
+            arquivoMatriz.value = '';
+            fileName.textContent = 'Nenhum arquivo selecionado';
+            summaryArquivo.textContent = 'Nenhum';
+            previewArquivo.textContent = 'Nenhum arquivo anexado';
+            gerarMatriz();
+            const inputs = matrizGrid.querySelectorAll('.matrix-cell');
+            inputs.forEach(input => input.value = '');
+            showToast('Tela limpa', 'Os campos foram redefinidos.', 'success');
+        }
+
+        function coletarMatrizComoTexto() {
+            const ordem = normalizarOrdem(ordemInput.value);
+            const inputs = [...matrizGrid.querySelectorAll('.matrix-cell')];
+            const linhas = [];
+
+            for (let i = 0; i < ordem; i++) {
+                const linha = [];
+                for (let j = 0; j < ordem + 1; j++) {
+                    const index = i * (ordem + 1) + j;
+                    const valor = inputs[index]?.value?.trim() || '0';
+                    linha.push(valor);
+                }
+                linhas.push(linha.join(' '));
+            }
+
+            return linhas.join('\n');
+        }
+
+        arquivoMatriz.addEventListener('change', function() {
+            const file = this.files && this.files[0] ? this.files[0] : null;
+            if (!file) {
+                fileName.textContent = 'Nenhum arquivo selecionado';
+                summaryArquivo.textContent = 'Nenhum';
+                previewArquivo.textContent = 'Nenhum arquivo anexado';
+                return;
+            }
+            carregarArquivo(file);
+        });
+
+        textoMatriz.addEventListener('input', function() {
+            previewManual.textContent = this.value.trim() ? 'Preenchida' : 'Vazia';
+        });
+
+        btnGerar.addEventListener('click', () => {
+            if (textoMatriz.value.trim()) {
+                preencherMatrizPorTexto(textoMatriz.value);
+                return;
+            }
+            gerarMatriz();
+            showToast('Matriz gerada', 'Os campos foram montados pela ordem escolhida.', 'success');
+        });
+
+        btnGerarTopo.addEventListener('click', () => {
+            if (textoMatriz.value.trim()) {
+                preencherMatrizPorTexto(textoMatriz.value);
+                return;
+            }
+            gerarMatriz();
+            showToast('Matriz gerada', 'Os campos foram montados pela ordem escolhida.', 'success');
+        });
+
+        btnPreencherExemplo.addEventListener('click', () => {
+            const exemplo = `2 1 -1 8
+-3 -1 2 -11
+-2 1 2 -3`;
+
+            textoMatriz.value = exemplo;
+            preencherMatrizPorTexto(exemplo);
+        });
+
+        btnLimparTudo.addEventListener('click', limparTudo);
+
+        btnResolver.addEventListener('click', () => {
+            const texto = coletarMatrizComoTexto();
+            console.log('Matriz para enviar ao back-end:\n' + texto);
+            showToast('Pronto para integrar', 'A matriz está pronta para ser enviada ao Django.', 'success');
+        });
+
+        btnExportarTexto.addEventListener('click', async () => {
+            const texto = coletarMatrizComoTexto();
+
+            try {
+                await navigator.clipboard.writeText(texto);
+                showToast('Copiado', 'A matriz foi copiada para a área de transferência.', 'success');
+            } catch (error) {
+                showToast('Texto gerado', 'Abra o console para ver a matriz exportada.', 'success');
+                console.log(texto);
+            }
+        });
+
+        gerarMatriz();
+    </script>
+</body>
+</html>
