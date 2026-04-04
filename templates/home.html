@@ -20,7 +20,7 @@
             </nav>
 
             <div class="sidebar-footer">
-                Sistema com backend em Django e algoritmo em Python puro.
+                Alunos: Guilherme Pedroso Piva e Bernardo Nicoletti Oliveira
             </div>
         </aside>
 
@@ -28,25 +28,20 @@
             <header class="main-header">
                 <div>
                     <h1>Resolver Sistema Linear</h1>
-                    <div class="subtitle">Informe a ordem da matriz e preencha a matriz ampliada [A|b].</div>
-                </div>
-
-                <div class="header-actions">
-                    <button class="btn ghost" type="button" id="btnLimparTudo">Limpar</button>
-                    <button class="btn primary" type="button" id="btnGerarTopo">Gerar matriz</button>
+                    <div class="subtitle">Informe a quantidade de equações e incógnitas e preencha a matriz ampliada [A|b].</div>
                 </div>
             </header>
 
             <section class="grid-3">
                 <div class="summary-item">
-                    <div class="summary-label">Ordem atual</div>
-                    <div class="summary-value" id="summaryOrdem">3 x 3</div>
-                    <div class="summary-sub">Quantidade de incógnitas do sistema.</div>
+                    <div class="summary-label">Dimensão atual</div>
+                    <div class="summary-value" id="summaryDimensao">3 x 2</div>
+                    <div class="summary-sub">Equações x incógnitas.</div>
                 </div>
 
                 <div class="summary-item">
                     <div class="summary-label">Colunas exibidas</div>
-                    <div class="summary-value" id="summaryColunas">4</div>
+                    <div class="summary-value" id="summaryColunas">3</div>
                     <div class="summary-sub">Inclui a coluna do resultado b.</div>
                 </div>
 
@@ -57,20 +52,32 @@
                 </div>
             </section>
 
-            <section class="grid-2">
+            <section class="grid">
                 <div class="card">
                     <div class="card-header">
                         <h2>Configuração da entrada</h2>
-                        <div class="card-subtitle">Escolha a ordem da matriz ou envie um arquivo com os números.</div>
+                        <div class="card-subtitle">Defina as dimensões do sistema ou envie um arquivo com os números.</div>
                     </div>
 
-                    <div class="search-form">
-                        <div class="search-row">
+                   <div class="search-form">
+                        <div class="search-row search-row-3">
                             <div class="search-field">
-                                <label for="ordem">Ordem da matriz (n x n)</label>
-                                <input class="input" type="number" id="ordem" min="2" max="10" value="3" />
+                                <label for="qtdLinhas">Quantidade de equações</label>
+                                <input class="input" type="number" id="qtdLinhas" min="1" value="3" />
                             </div>
 
+                            <div class="search-field">
+                                <label for="qtdColunas">Quantidade de incógnitas</label>
+                                <input class="input" type="number" id="qtdColunas" min="1" value="2" />
+                            </div>
+
+                            <div class="search-field">
+                                <label for="totalColunasExibidas">Colunas da matriz ampliada</label>
+                                <input class="input" type="text" id="totalColunasExibidas" value="3" readonly />
+                            </div>
+                        </div>
+
+                        <div class="search-row">
                             <div class="search-field">
                                 <label for="arquivoMatriz">Anexar arquivo (.txt)</label>
                                 <div class="file-input-wrapper">
@@ -90,6 +97,7 @@
                                     id="textoMatriz"
                                     class="input textarea-matriz"
                                     rows="7"
+                                    readonly
                                     placeholder="Exemplo:
 2 1 -1 8
 -3 -1 2 -11
@@ -102,59 +110,19 @@
                                 <div class="empty-state empty-state-left">
                                     <div>
                                         <strong class="helper-title">Você pode informar de 3 formas:</strong>
-                                        <div class="helper-item">1. Escolher a ordem e preencher os campos.</div>
+                                        <div class="helper-item">1. Informar a quantidade de equações e incógnitas e preencher os campos.</div>
                                         <div class="helper-item">2. Colar a matriz no campo ao lado.</div>
                                         <div class="helper-item">3. Anexar um arquivo <strong>.txt</strong> com uma linha por equação.</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
+                        <br>
                         <div class="search-actions">
                             <button class="btn ghost" type="button" id="btnPreencherExemplo">Carregar exemplo</button>
                             <button class="btn primary" type="button" id="btnGerar">Gerar matriz</button>
+                            <button class="btn ghost" type="button" id="btnLimparTudo">Limpar</button>
                         </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Pré-visualização</h2>
-                        <div class="card-subtitle">Resumo da entrada antes de enviar ao backend.</div>
-                    </div>
-
-                    <div class="table-wrapper">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Valor</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Ordem definida</td>
-                                    <td id="previewOrdem">3 x 3</td>
-                                </tr>
-                                <tr>
-                                    <td>Total de campos</td>
-                                    <td id="previewCampos">12</td>
-                                </tr>
-                                <tr>
-                                    <td>Arquivo</td>
-                                    <td id="previewArquivo">Nenhum arquivo anexado</td>
-                                </tr>
-                                <tr>
-                                    <td>Entrada manual</td>
-                                    <td id="previewManual">Vazia</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="matriz-hint">
-                        <span class="dot"></span>
-                        <span>A última coluna representa o vetor de resultado <strong>b</strong>.</span>
                     </div>
                 </div>
             </section>
@@ -163,7 +131,7 @@
                 <div class="section-title-row">
                     <div class="card-header">
                         <h2>Matriz ampliada [A|b]</h2>
-                        <div class="card-subtitle">Os campos são gerados conforme a ordem escolhida.</div>
+                        <div class="card-subtitle">Os campos são gerados conforme a quantidade de equações e incógnitas.</div>
                     </div>
 
                     <div class="badge-container">
@@ -176,13 +144,16 @@
                     <div class="matriz-wrapper">
                         <div id="matrizGrid" class="matriz-grid"></div>
                     </div>
+                    <div class="search-actions actions-left">
+                        <button class="btn primary" id="btnResolver">Resolver sistema</button>
+                        <button class="btn ghost" id="btnExportarTexto">Copiar matriz</button>
+                    </div>
                 </div>
             </section>
 
             <section class="card">
                 <div class="card-header">
                     <h2>Resultado</h2>
-                    <div class="card-subtitle">Retorno do backend em Django.</div>
                 </div>
 
                 <div class="result-block">
@@ -198,11 +169,6 @@
                 <div class="result-block">
                     <div class="result-title">Log das operações</div>
                     <div class="result-box" id="resultadoLogs">Nenhum passo calculado ainda.</div>
-                </div>
-
-                <div class="search-actions actions-left">
-                    <button class="btn primary" type="button" id="btnResolver">Resolver sistema</button>
-                    <button class="btn ghost" type="button" id="btnExportarTexto">Copiar matriz</button>
                 </div>
             </section>
         </main>

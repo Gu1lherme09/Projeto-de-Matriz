@@ -1,24 +1,21 @@
-const ordemInput = document.getElementById("ordem");
+const qtdLinhasInput = document.getElementById("qtdLinhas");
+const qtdColunasInput = document.getElementById("qtdColunas");
+const totalColunasExibidas = document.getElementById("totalColunasExibidas");
+
 const matrizGrid = document.getElementById("matrizGrid");
 const textoMatriz = document.getElementById("textoMatriz");
 const arquivoMatriz = document.getElementById("arquivoMatriz");
 const fileName = document.getElementById("fileName");
 
-const summaryOrdem = document.getElementById("summaryOrdem");
+const summaryDimensao = document.getElementById("summaryDimensao");
 const summaryColunas = document.getElementById("summaryColunas");
 const summaryArquivo = document.getElementById("summaryArquivo");
-
-const previewOrdem = document.getElementById("previewOrdem");
-const previewCampos = document.getElementById("previewCampos");
-const previewArquivo = document.getElementById("previewArquivo");
-const previewManual = document.getElementById("previewManual");
 
 const resultadoClassificacao = document.getElementById("resultadoClassificacao");
 const resultadoSolucao = document.getElementById("resultadoSolucao");
 const resultadoLogs = document.getElementById("resultadoLogs");
 
 const btnGerar = document.getElementById("btnGerar");
-const btnGerarTopo = document.getElementById("btnGerarTopo");
 const btnPreencherExemplo = document.getElementById("btnPreencherExemplo");
 const btnLimparTudo = document.getElementById("btnLimparTudo");
 const btnResolver = document.getElementById("btnResolver");
@@ -80,32 +77,54 @@ function showToast(title, text, type = "success") {
     }, 3200);
 }
 
-function normalizarOrdem(valor) {
+function normalizarQuantidade(valor, padrao = 3) {
     const numero = parseInt(valor, 10);
 
-    if (Number.isNaN(numero)) return 3;
-    if (numero < 2) return 2;
+    if (Number.isNaN(numero)) return padrao;
+    if (numero < 1) return 1;
     if (numero > 10) return 10;
 
     return numero;
 }
 
-function atualizarResumo(ordem) {
-    summaryOrdem.textContent = `${ordem} x ${ordem}`;
-    summaryColunas.textContent = `${ordem + 1}`;
-    previewOrdem.textContent = `${ordem} x ${ordem}`;
-    previewCampos.textContent = `${ordem * (ordem + 1)}`;
-    previewManual.textContent = textoMatriz.value.trim() ? "Preenchida" : "Vazia";
+function obterDimensoes() {
+    const linhas = normalizarQuantidade(qtdLinhasInput.value, 3);
+    const colunas = normalizarQuantidade(qtdColunasInput.value, 2);
+
+    qtdLinhasInput.value = linhas;
+    qtdColunasInput.value = colunas;
+
+    return {
+        linhas,
+        colunas,
+        colunasTotais: colunas + 1,
+    };
+}
+
+function atualizarResumo(linhas, colunas) {
+    const colunasTotais = colunas + 1;
+
+    if (summaryDimensao) {
+        summaryDimensao.textContent = `${linhas} x ${colunas}`;
+    }
+
+    if (summaryColunas) {
+        summaryColunas.textContent = String(colunasTotais);
+    }
+
+    if (totalColunasExibidas) {
+        totalColunasExibidas.value = String(colunasTotais);
+    }
 }
 
 function gerarMatriz() {
-    const ordem = normalizarOrdem(ordemInput.value);
-    ordemInput.value = ordem;
-    matrizGrid.innerHTML = "";
-    matrizGrid.style.gridTemplateColumns = `repeat(${ordem + 1}, 68px)`;
+    const { linhas, colunas, colunasTotais } = obterDimensoes();
 
-    for (let i = 0; i < ordem; i++) {
-        for (let j = 0; j < ordem + 1; j++) {
+    matrizGrid.innerHTML = "";
+    matrizGrid.style.gridTemplateColumns = `repeat(${colunasTotais}, 68px)`;
+
+    for (let i = 0; i < linhas; i++) {
+        for (let j = 0; j < colunasTotais; j++) {
             const input = document.createElement("input");
             input.type = "number";
             input.step = "any";
@@ -114,7 +133,7 @@ function gerarMatriz() {
             input.dataset.row = i;
             input.dataset.col = j;
 
-            if (j === ordem) {
+            if (j === colunas) {
                 input.classList.add("col-b");
             }
 
@@ -122,49 +141,60 @@ function gerarMatriz() {
         }
     }
 
-    atualizarResumo(ordem);
+    atualizarResumo(linhas, colunas);
 }
 
 function preencherMatrizPorTexto(texto) {
-    const linhas = texto
+    const linhasTexto = texto
         .trim()
         .split(/\n+/)
         .map((linha) => linha.trim())
         .filter(Boolean);
 
-    if (!linhas.length) {
+    if (!linhasTexto.length) {
         showToast("Entrada vazia", "Não foi encontrado conteúdo para preencher.", "error");
         return;
     }
 
-    const matriz = linhas.map((linha) =>
+    const matriz = linhasTexto.map((linha) =>
         linha.replace(/;/g, " ").split(/\s+/).filter(Boolean)
     );
 
-    const tamanho = matriz.length;
-    const colunasEsperadas = tamanho + 1;
-    const formatoValido = matriz.every((linha) => linha.length === colunasEsperadas);
+    const quantidadeLinhas = matriz.length;
+    const quantidadeColunasTotais = matriz[0].length;
 
-    if (!formatoValido) {
-        showToast("Formato inválido", "O texto deve ter n linhas e n+1 colunas em cada linha.", "error");
+    const formatoValido = matriz.every(
+        (linha) => linha.length === quantidadeColunasTotais
+    );
+
+    if (!formatoValido || quantidadeColunasTotais < 2) {
+        showToast(
+            "Formato inválido",
+            "Todas as linhas precisam ter a mesma quantidade de valores.",
+            "error"
+        );
         return;
     }
 
-    ordemInput.value = tamanho;
+    const quantidadeIncognitas = quantidadeColunasTotais - 1;
+
+    qtdLinhasInput.value = quantidadeLinhas;
+    qtdColunasInput.value = quantidadeIncognitas;
+
     gerarMatriz();
 
     const inputs = matrizGrid.querySelectorAll(".matrix-cell");
 
     matriz.forEach((linha, i) => {
         linha.forEach((valor, j) => {
-            const index = i * (tamanho + 1) + j;
+            const index = i * quantidadeColunasTotais + j;
             if (inputs[index]) {
                 inputs[index].value = valor;
             }
         });
     });
 
-    atualizarResumo(tamanho);
+    atualizarResumo(quantidadeLinhas, quantidadeIncognitas);
     showToast("Matriz carregada", "Os campos foram preenchidos com sucesso.", "success");
 }
 
@@ -172,15 +202,15 @@ function carregarArquivo(file) {
     if (!file) return;
 
     fileName.textContent = file.name;
-    summaryArquivo.textContent = file.name;
-    previewArquivo.textContent = file.name;
+    if (summaryArquivo) {
+        summaryArquivo.textContent = file.name;
+    }
 
     const reader = new FileReader();
 
     reader.onload = function (event) {
         const conteudo = String(event.target.result || "");
         textoMatriz.value = conteudo.trim();
-        previewManual.textContent = textoMatriz.value.trim() ? "Preenchida" : "Vazia";
         preencherMatrizPorTexto(conteudo);
     };
 
@@ -192,12 +222,16 @@ function carregarArquivo(file) {
 }
 
 function limparTudo() {
-    ordemInput.value = 3;
+    qtdLinhasInput.value = 3;
+    qtdColunasInput.value = 2;
     textoMatriz.value = "";
     arquivoMatriz.value = "";
     fileName.textContent = "Nenhum arquivo selecionado";
-    summaryArquivo.textContent = "Nenhum";
-    previewArquivo.textContent = "Nenhum arquivo anexado";
+
+    if (summaryArquivo) {
+        summaryArquivo.textContent = "Nenhum";
+    }
+
     resultadoClassificacao.textContent = "Aguardando execução.";
     resultadoSolucao.textContent = "Nenhuma solução calculada ainda.";
     resultadoLogs.textContent = "Nenhum passo calculado ainda.";
@@ -213,23 +247,23 @@ function limparTudo() {
 }
 
 function coletarMatrizComoTexto() {
-    const ordem = normalizarOrdem(ordemInput.value);
+    const { linhas, colunasTotais } = obterDimensoes();
     const inputs = [...matrizGrid.querySelectorAll(".matrix-cell")];
-    const linhas = [];
+    const linhasTexto = [];
 
-    for (let i = 0; i < ordem; i++) {
+    for (let i = 0; i < linhas; i++) {
         const linha = [];
 
-        for (let j = 0; j < ordem + 1; j++) {
-            const index = i * (ordem + 1) + j;
+        for (let j = 0; j < colunasTotais; j++) {
+            const index = i * colunasTotais + j;
             const valor = inputs[index]?.value?.trim() || "0";
             linha.push(valor);
         }
 
-        linhas.push(linha.join(" "));
+        linhasTexto.push(linha.join(" "));
     }
 
-    return linhas.join("\n");
+    return linhasTexto.join("\n");
 }
 
 function renderizarResultado(dados) {
@@ -260,42 +294,24 @@ arquivoMatriz.addEventListener("change", function () {
 
     if (!file) {
         fileName.textContent = "Nenhum arquivo selecionado";
-        summaryArquivo.textContent = "Nenhum";
-        previewArquivo.textContent = "Nenhum arquivo anexado";
+        if (summaryArquivo) {
+            summaryArquivo.textContent = "Nenhum";
+        }
         return;
     }
 
     carregarArquivo(file);
 });
 
-textoMatriz.addEventListener("input", function () {
-    previewManual.textContent = this.value.trim() ? "Preenchida" : "Vazia";
-});
-
 btnGerar.addEventListener("click", () => {
-    if (textoMatriz.value.trim()) {
-        preencherMatrizPorTexto(textoMatriz.value);
-        return;
-    }
-
     gerarMatriz();
-    showToast("Matriz gerada", "Os campos foram montados pela ordem escolhida.", "success");
-});
-
-btnGerarTopo.addEventListener("click", () => {
-    if (textoMatriz.value.trim()) {
-        preencherMatrizPorTexto(textoMatriz.value);
-        return;
-    }
-
-    gerarMatriz();
-    showToast("Matriz gerada", "Os campos foram montados pela ordem escolhida.", "success");
+    showToast("Matriz gerada", "Os campos foram montados conforme as dimensões informadas.", "success");
 });
 
 btnPreencherExemplo.addEventListener("click", () => {
-    const exemplo = `2 1 -1 8
--3 -1 2 -11
--2 1 2 -3`;
+    const exemplo = `1 1 2
+2 -1 1
+3 1 5`;
 
     textoMatriz.value = exemplo;
     preencherMatrizPorTexto(exemplo);
