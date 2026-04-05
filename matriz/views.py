@@ -3,10 +3,11 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from .services.solver import interpretar_matriz_texto, gauss_jordan_com_pivotamento
 
-
+@ensure_csrf_cookie
 @require_GET
 def home(request):
     return render(request, "home.html")
