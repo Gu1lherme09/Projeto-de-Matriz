@@ -82,7 +82,6 @@ function normalizarQuantidade(valor, padrao = 3) {
 
     if (Number.isNaN(numero)) return padrao;
     if (numero < 1) return 1;
-    if (numero > 10) return 10;
 
     return numero;
 }
